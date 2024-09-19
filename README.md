@@ -66,7 +66,6 @@ and service performance was tested using requests from the MC Test and TKG datas
   This leads to under-utilization of the 4090’s computing capacity.
 
 **Conclusion**:
-
 Optimizing GPU selection and configuration for LLMs is a memory-bound challenge. Insufficient GPU memory significantly
 impacts LLM service performance.
 
@@ -88,7 +87,6 @@ Then service performance was tested using requests from the MC Test and TKG data
   This bottleneck root in the in-host communication between interconnected GPUs.
 
 **Conclusion**:
-
 Optimizing GPU configuration for LLMs is both a memory-bound and in-host communication-bound challenge.
 As long as the cached tokens on one GPU do not exceed a certain threshold, there will be no in-host communication
 bottleneck.
@@ -121,7 +119,6 @@ executed once before (like TPS=6 P) and once after (like TPS=6 L) a specific tim
 * **After**: KV cache automatically constructed during the first stage is reused for subsequent calls.
 
 **Conclusion**:
-
 RadixAttention does not directly reduce the execution time of requests sent to llm service (generation process), but
 enhance the throughput by accelerating prefill batch.
 Therefore, with RadixAttention, llm services can process more requests per second, while the execution time will not be
@@ -129,7 +126,7 @@ reduced if the incoming request rate remains below the system’s throughput lim
 
 Performance differences are visually presented below:
 
-<img src="./assets/GPU/radix_attention.png" width="500">
+<img src="assets/Inference/radix_attention.png" width="500">
 
 **B. To be updated**
 
@@ -138,27 +135,50 @@ Performance differences are visually presented below:
 We compared the performance of two open-source inference acceleration frameworks, sglang and vllm.
 
 **Conclusion**:
-
 The **sglang** framework demonstrated superior acceleration performance in the tested scenarios.
 
 Performance differences between inference frameworks are visually presented below:
 
-<img src="./assets/GPU/framework_comparison.png" width="250">
+<img src="assets/Inference/framework_comparison.png" width="250">
 
 ### 3. LLM Service Performance Analysis
 
 The llm service analysis focuses on the following factors:
 
-* **Determining Tensor Parallel Size**:
-* **Scaling Up Instances in One Host**:
-* **Scaling Up Instances in One GPU**:
+* **Determining Tensor Parallel Size**
+* **Scaling Up Instances in One Host**
+* **Scaling Up Instances in One GPU**
 
 #### 3.1 Determining Tensor Parallel Size
 
+Increasing the tensor parallel size allows Large Language Model (LLM) computations to be distributed across multiple GPUs, but it also introduces additional resource overhead. 
+The key consideration is whether increasing tensor parallel size leads to proportional improvements in service performance. 
+Finding the optimal balance is essential to avoid inefficient GPU resource utilization.
 
+The experimental results have shown that the LLM service can process more requests, as the tensor parallel size increases. However, the increase is not proportional to the increase in GPU resources.
 
+**Conclusion**:
+Instead of considering increasing tensor parallel size for computing performance, we determine the size based on whether the GPU memory is sufficient to store prompt and generation tokens for KV caching.
+
+Performance differences between different tensor parallel sizes are visually presented below:
+
+<img src="assets/Service/tensor_parallel_4090.png" width="250">
+
+<br>
+
+<img src="assets/Service/tensor_parallel_A100.png" width="360">
 
 #### 3.2 Scaling Up Instances in One Host
+
+When building a GPU cluster and deploying LLM services, we need to analyze whether services will interfere with each other and affect performance when deploying multiple models on a single GPU host.
+
+**Conclusion**:
+Nearly no influence on service performance when multiple LLM service instances deployed on one GPU Host.
+
+Performance differences are visually presented below:
+
+<img src="assets/Service/scaling_up_instances_host.png" width="1000">
+
 
 #### 3.3 Scaling Up Instances in One GPU
 
