@@ -195,4 +195,19 @@ performance, provided that resource contention is carefully managed.
 
 #### 3.3 Scaling Up Instances in One GPU
 
+When deploying multiple LLM service instances on a single GPU, it’s important to understand the extent to which resource contention may impact performance.
+
+Performance differences are visually presented below:
+
+<img src="assets/Service/scaling_up_instances_gpu.png" width="800">
+
+**Experimental Results**:
+The results show that the total number of requests that two services can handle simultaneously on one GPU is approximately **0.8× to 0.9×** the number of requests that a single service can process on the same GPU. 
+This suggests a notable reduction in throughput when multiple services are deployed on a single GPU.
+
+**Conclusion**:
+Experimental results indicate that there is **interference** between LLM service instances deployed on one GPU. 
+Resource competition between instances, particularly for GPU memory and compute power, leads to diminished overall performance compared to deploying a single service on the GPU. 
+This interference must be carefully managed to avoid significant drops in service efficiency.
+
 #### 3.4 To Be Updated
