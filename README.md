@@ -48,6 +48,17 @@ The GPU analysis Focuses on the following factors:
 
 #### 1.1 Performance Inside GPU
 
+To evaluate the performance within a single GPU, **Qwen2-7B** was deployed on one GPU (with tensor parallel size = 1), and service performance was tested using requests from the MC Test and TKG datasets.
+
+For MC Test dataset, Qwen2-7B deployed on an A100 processed **1.6× more requests** than on a 4090. 
+This difference is due to the superior computing capacity and higher GPU bandwidth of the A100.
+
+For TKG dataset, Qwen2-7B deployed on an A100 processed **2× to 3× more requests** than on a 4090. 
+The 4090’s limited GPU memory results in an inability to store cached Key and Value tokens, reducing the number of simultaneous requests.
+This leads to under-utilization of the 4090’s computing capacity.
+
+The performance difference is visually presented below:
+
 <img src="./assets/GPU/performance_inside_gpu.png" width="500">
 
 
