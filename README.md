@@ -57,6 +57,13 @@ The GPU analysis Focuses on the following factors:
 To evaluate the performance within a single GPU, **Qwen2-7B** was deployed on one GPU (with tensor parallel size = 1),
 and service performance was tested using requests from the MC Test and TKG datasets.
 
+The performance differences are visually presented below:
+
+<img src="./assets/GPU/performance_inside_gpu.png" width="800">
+
+
+**Experimental Results**:
+
 * **MC Test dataset**: Qwen2-7B deployed on an A100 processed **1.6× more requests** than on a 4090.
   This difference is due to the superior computing capacity and higher GPU bandwidth of the A100.
 
@@ -69,16 +76,18 @@ and service performance was tested using requests from the MC Test and TKG datas
 Optimizing GPU selection and configuration for LLMs is a memory-bound challenge. Insufficient GPU memory significantly
 impacts LLM service performance.
 
-The performance differences are visually presented below:
-
-<img src="./assets/GPU/performance_inside_gpu.png" width="500">
-
 #### 1.2 Performance of Interconnected GPUs
 
 To evaluate the performance of interconnected GPUs, **Qwen2-72B-AWQ** was deployed on four GPUs (with tensor parallel
 size = 4).
 The tokens stored in GPU memory would be transferred between GPUs during the serving process.
 Then service performance was tested using requests from the MC Test and TKG datasets.
+
+Performance differences between GPUs are visually presented below:
+
+<img src="./assets/GPU/performance_interconnected_gpu.png" width="800">
+
+**Experimental Results**:
 
 * **MC Test dataset**: Qwen2-7B deployed on A100 processed **1.6× more requests** than on 4090, which is consistent with
   the performance of Qwen2-7B deployed in one single GPU.
@@ -94,10 +103,6 @@ This observation provides a basis for recommending different GPU configurations 
 For instance, Qwen2-72B can be deployed on 4090 GPUs for tasks with lower token loads, but for tasks with large prompts,
 deploying on 4090 is not ideal due to memory constraints.
 
-Performance differences between GPUs are visually presented below:
-
-<img src="./assets/GPU/performance_interconnected_gpu.png" width="500">
-
 ### 2. Inference Framework Performance Analysis
 
 The inference framework analysis provides critical insights into selecting the optimal framework for deploying LLM
@@ -112,6 +117,11 @@ In existing inference engines, the KV cache of a request is discarded after proc
 cache from being reused across multiple calls and significantly slowing down the execution.
 **RadixAttention** enables the automatic reuse of the KV cache across multiple generation calls.
 
+Performance differences are visually presented below:
+
+<img src="assets/Inference/radix_attention.png" width="800">
+
+**Experimental Results**:
 The experiment aims to compare the performance of the same testing task under identical experimental conditions,
 executed once before (like TPS=6 P) and once after (like TPS=6 L) a specific time period.
 
@@ -124,22 +134,18 @@ enhance the throughput by accelerating prefill batch.
 Therefore, with RadixAttention, llm services can process more requests per second, while the execution time will not be
 reduced if the incoming request rate remains below the system’s throughput limit.
 
-Performance differences are visually presented below:
-
-<img src="assets/Inference/radix_attention.png" width="500">
-
 **B. To be updated**
 
 #### 2.2 Inference Framework Comparison
 
 We compared the performance of two open-source inference acceleration frameworks, sglang and vllm.
 
-**Conclusion**:
-The **sglang** framework demonstrated superior acceleration performance in the tested scenarios.
-
 Performance differences between inference frameworks are visually presented below:
 
-<img src="assets/Inference/framework_comparison.png" width="250">
+<img src="assets/Inference/framework_comparison.png" width="400">
+
+**Conclusion**:
+The **sglang** framework demonstrated superior acceleration performance in the tested scenarios.
 
 ### 3. LLM Service Performance Analysis
 
@@ -151,34 +157,41 @@ The llm service analysis focuses on the following factors:
 
 #### 3.1 Determining Tensor Parallel Size
 
-Increasing the tensor parallel size allows Large Language Model (LLM) computations to be distributed across multiple GPUs, but it also introduces additional resource overhead. 
-The key consideration is whether increasing tensor parallel size leads to proportional improvements in service performance. 
+Increasing the tensor parallel size allows Large Language Model (LLM) computations to be distributed across multiple
+GPUs, but it also introduces additional resource overhead.
+The key consideration is whether increasing tensor parallel size leads to proportional improvements in service
+performance.
 Finding the optimal balance is essential to avoid inefficient GPU resource utilization.
-
-The experimental results have shown that the LLM service can process more requests, as the tensor parallel size increases. However, the increase is not proportional to the increase in GPU resources.
-
-**Conclusion**:
-Instead of considering increasing tensor parallel size for computing performance, we determine the size based on whether the GPU memory is sufficient to store prompt and generation tokens for KV caching.
 
 Performance differences between different tensor parallel sizes are visually presented below:
 
-<img src="assets/Service/tensor_parallel_4090.png" width="250">
+<img src="assets/Service/tensor_parallel_4090.png" width="400">
 
 <br>
 
-<img src="assets/Service/tensor_parallel_A100.png" width="360">
+<img src="assets/Service/tensor_parallel_A100.png" width="600">
+
+**Experimental Results**:
+The experimental results have shown that the LLM service can process more requests, as the tensor parallel size
+increases. However, the increase is not proportional to the increase in GPU resources.
+
+**Conclusion**:
+Instead of considering increasing tensor parallel size for computing performance, we determine the size based on whether
+the GPU memory is sufficient to store prompt and generation tokens for KV caching.
 
 #### 3.2 Scaling Up Instances in One Host
 
-When building a GPU cluster and deploying LLM services, we need to analyze whether services will interfere with each other and affect performance when deploying multiple models on a single GPU host.
-
-**Conclusion**:
-Nearly no influence on service performance when multiple LLM service instances deployed on one GPU Host.
+When deploying multiple LLM services on a single GPU host within a cluster, it is crucial to analyze whether services
+interfere with each other and negatively affect performance.
 
 Performance differences are visually presented below:
 
 <img src="assets/Service/scaling_up_instances_host.png" width="1000">
 
+**Conclusion**:
+Experimental results indicate **minimal to no interference** between LLM service instances deployed on the same GPU
+host. This suggests that multiple instances can run concurrently on one host without significant impact on service
+performance, provided that resource contention is carefully managed.
 
 #### 3.3 Scaling Up Instances in One GPU
 
